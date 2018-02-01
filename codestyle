@@ -1,0 +1,6 @@
+
+    MySQL的表名需小写，如：item，car
+    模块名（Models）需首字母大写，，并在名称后添加“Model”，如：ItemModel，CarModel
+    控制器（Controllers）需首字母大写，，并在名称中添加“Controller”，如：ItemController，CarController
+    视图（Views）部署结构为“控制器名/行为名”，如：item/view.php，car/buy.php
+
