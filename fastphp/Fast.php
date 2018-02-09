@@ -45,6 +45,7 @@ class Fastphp
             $urlArray = explode('/',$url);
             //删除空的数组元素
             $urlArray = array_filter($urlArray);
+            
         }
     }
 }
