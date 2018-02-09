@@ -74,7 +74,114 @@ class Fastphp
         $dispatch = new $controller($controllerName,$actionName);
         // $dispatch保存控制器实例化的对象,我们就可以调用它的方法
         // 也可以像方法中传入参数,一下等同于:$dispatch->$actionName($param)
-        call_user_func_array(array($dispatch))
+        call_user_func_array(array($dispatch));
+    }
+    
+    // 检测开发环境
+    public function setReporting()
+    {
+        if(APP_DEBUG === true)
+        {
+            error_reporting(E_ALL);
+            ini_set('display_errors','On');
+        }
+        else
+        {
+            error_reporting(E_ALL);
+            ini_set('display_errors','Off');
+            ini_set('log_errors','On');
+        }
+    }
+
+    // 删除敏感字符
+    public function stripSlashesDeep($value)
+    {
+        $value = is_array($value) ? array_map(array($this,'stripSlashesDeep'),$value) : stripslashes($value);
+        return $value;
+    }
+
+    //检测敏感字符病删除
+    public function removeMagicQuotes()
+    {
+        if (get_magic_quotes_gpc()) 
+        {
+            $_GET = isset($_GET) ? $this->stripSlashesDeep($_GET ) : '';
+            $_POST = isset($_POST) ? $this->stripSlashesDeep($_POST ) : '';
+            $_COOKIE = isset($_COOKIE) ? $this->stripSlashesDeep($_COOKIE) : '';
+            $_SESSION = isset($_SESSION) ? $this->stripSlashesDeep($_SESSION) : '';
+        }
+    }
+
+    /**
+     * 检测自定义全局变量并移除.因为resgister_globals已经弃用,如果已经弃用的register_
+     * globals指令被设置为on,那么局部变量也将在脚本的全局作用域中可用.
+     */
+    public function unregisterGlobal()
+    {
+        if(ini_get('getgister_globals'))
+        {
+            $array = array('_SESSION','_POST','_GET','_COOKIE','_REQUEST','_SERVER','_ENV','_FILES');
+                foreach($array as $value)
+                {
+                    foreach($GLOBALS[$value] as $key => $var)
+                    {
+                        if($var === $GLOBALS[key])
+                        {
+                            unset($GLOBALS[$key]);
+                        }
+                    }
+                }
+        }
+    }
+
+    // 配置数据库信息
+    public function setDbConfig()
+    {
+        if($this->config['db'])
+        {
+            define('DB_HOST',$this->config['db']['host']);
+            define('DB_NAME',$this->config['db']['dbname']);
+            define('DB_USER',$this->config['db']['username']);
+            define('DB_PASS',$this->config['db']['password']);
+        }
+    }
+
+    // 自动加载类
+    public function loadClass($className)
+    {
+        $classMap = $this->classMap();
+        if(isset($classMap[$className]))
+        {
+            $file = $classMap[$className];
+        }
+        elseif(strops($className,'\\') !== false)
+        {
+            // 包含应用(applications目录)文件
+            $file = APP_PATH.str_replace('\\','/',$className).'.php';
+            if(!is_file($file))
+            {
+                return;
+            }
+        }
+        else
+        {
+            return;
+        }
+        include $file;
+        //这里可以加入判断,如果名为$className的类、接口护着性状不存在，则在调试模式下抛出错误
+    }
+    
+    // 内核文件明明文件映射关系
+    protected function classMap()
+    {
+        return 
+        [
+            'fastphp\base\Controller' => CORE_PATH . '/base/Controller.php',
+            'fastphp\base\Model' => CORE_PATH . '/base/Model.php',
+            'fastphp\base\View' => CORE_PATH . '/base/View.php',
+            'fastphp\db\Db' => CORE_PATH . '/db/Db.php',
+            'fastphp\db\Sql' => CORE_PATH . '/db/Sql.php',
+        ];
     }
 }
 /**
@@ -84,5 +191,11 @@ class Fastphp
  * yoursite.com/controllerName/actionName/queryString
  * 当浏览器访问上面的URL，route()从全局额变量$_SERVER['REQUEST_URL']中获取到字符串/controllerName/actionName/queryString。
  * 然后，会将这个字符串分割城三个备份：controllerName、actionName和queryString
- * 
+ * 例如，URL链接为：yoursite.com/item/detail/1/hello，那么route()分割之后，
+
+ *  ControllerName名就是：item
+ *  actionName名就是：detail
+ *  URL参数就是：array(1, hello)
+
+ * 分割完成后，路由方法再实例化控制器：itemController，并调用其中的detail方法 。
  */
