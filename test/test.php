@@ -1,8 +1,18 @@
 <?php
     $arr = array('apple' , 'banana' ,'orange','lemo','blueberry' );
-    foreach($arr as $value)
+    // $string = implode(' ',$arr);
+    // print_r($arr);  
+    // echo $string;|
+    // foreach($arr as $value)
+    // {
+    //     echo $value;
+    // }
+    $fields = array();
+    $names = array();
+    foreach ($arr as $key => $value)
     {
-        $value = 'i'.$value;
-        echo $value.' ';
+        $fileds[] = sprintf("`%s`",$key);
+        $names[] = sprintf(":%s",$value);
     }
-    print_r($arr);  
+    print_r($fileds);
+    print_r($names);
