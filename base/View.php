@@ -20,4 +20,9 @@ class View
     {
         $this->variables[$name] = $value;
     }
+    // 渲染显示
+    public function render()
+    {
+        
+    }
 }
